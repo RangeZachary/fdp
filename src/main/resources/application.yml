@@ -1,0 +1,48 @@
+server:
+  port: 9898
+
+logging:
+  level:
+    root: info
+    pers.range.fdp: info
+    org.apache.kafka: warn
+    com.quant360.api.helper: warn
+
+fdp:
+  mode: mds
+  kafka-url: fdp:9092
+  filepath: /Users/zhurenjie/Downloads
+  buffer-size: 131072
+  send-retry-times: 10
+  send-retry-interval-ms: 100
+  save-local: true
+
+lsh:
+  web-socket-url: ws://124.221.102.98:29393/lv2/data
+  token: test-abc123-01
+  code: 600000,000001
+
+mds:
+  config-path: src/main/resources/mds_api_config.json
+  username: customer528
+  password: tJxCsAyr
+
+kafka:
+  admin:
+    bootstrap-servers: ${fdp.kafka-url}
+  producer:
+    bootstrap-servers: ${fdp.kafka-url}
+    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
+#    acks: 0
+#    bufferMemory: 67108864  # 64*1024*1024
+#    batchSize: 65536        # 128*1024
+#    maxRequestSize: 655360  # 10*128*1024
+#    lingerMs: 10
+  consumer:
+    bootstrap-servers: ${fdp.kafka-url}
+    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+    enable-auto-commit: false
+    auto-offset-reset: earliest
+    group-id: ${fdp.mode}-group
