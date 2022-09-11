@@ -113,13 +113,14 @@ class KafkaConsumeHandler(private val topics: Array<String>,
             return
         }
 
-        // 10秒记一次，超过30则表示超过5分钟没收到任何数据，表示可close
-        while (emptyTimes < 30) {
+        // 10秒记一次，超过18则表示超过3分钟没收到任何数据，表示可close
+        while (emptyTimes < 18) {
             logger.info("wait for consumer finish, empty times: $emptyTimes")
             Thread.sleep(10 * 1000)
         }
         runFlag = false
         while (!endFlag) {
+            logger.debug("wait for receive proc end, empty times: $emptyTimes")
             Thread.sleep(1 * 1000)
         }
         offsetMap.clear()

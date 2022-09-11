@@ -76,39 +76,25 @@ class MdsDataSendHandler(private val date: LocalDate,
         executors.execute { consumer.fetchData() }
     }
 
-    fun close() {
-        if (!runFlag) {
-            logger.info("mds data send handler is closed, don't need close.")
-            return
-        }
-
-        while (!ringBuffer.isEmpty) {
-            logger.info("wait for ring buffer empty, size: ${ringBuffer.size}")
-            Thread.sleep(5 * 1000)
-        }
-        runFlag = false
-        while (!endFlag) {
-            Thread.sleep(1 * 1000)
-        }
-        producer.close()
-        consumer.close()
-        logger.info("mds data send handler closed.")
-    }
-
     private fun send() {
         runFlag = true
         var sendCount = 0
         var sendLogTime = System.currentTimeMillis()
         while (runFlag) {
-            val sendData = ringBuffer.take() ?: continue
+            try {
+                if (logger.isDebugEnabled && System.currentTimeMillis() - sendLogTime > 1000) {
+                    logger.debug("data send count = $sendCount, buffer remaining = ${ringBuffer.size}")
+                    sendLogTime = System.currentTimeMillis()
+                }
 
-            val sd = sendData as SendObject
-            producer.sendData(getTopic(sd.type), sd.key, sd.value)
-
-            sendCount++
-            if (logger.isDebugEnabled && System.currentTimeMillis() - sendLogTime > 1000) {
-                logger.debug("data send count = $sendCount, buffer remaining = ${ringBuffer.size}")
-                sendLogTime = System.currentTimeMillis()
+                val sendData = ringBuffer.take()
+                if (sendData != null) {
+                    val sd = sendData as SendObject
+                    producer.sendData(getTopic(sd.type), sd.key, sd.value)
+                    sendCount++
+                }
+            } catch (e: Exception) {
+                logger.error("send data error: ", e)
             }
         }
         endFlag = true
@@ -121,6 +107,26 @@ class MdsDataSendHandler(private val date: LocalDate,
             tradeStr -> tradeTopic
             else -> throw RuntimeException("no such topic: $type")
         }
+
+    fun close() {
+        if (!runFlag) {
+            logger.info("mds data send handler is closed, don't need close.")
+            return
+        }
+
+        while (!ringBuffer.isEmpty) {
+            logger.info("wait for ring buffer empty, size: ${ringBuffer.size}")
+            Thread.sleep(1 * 1000)
+        }
+        runFlag = false
+        while (!endFlag) {
+            logger.debug("wait for send proc end, buffer size: ${ringBuffer.size}")
+            Thread.sleep(1 * 1000)
+        }
+        producer.close()
+        consumer.close()
+        logger.info("mds data send handler closed.")
+    }
 
     data class SendObject(val type: String, val key: String, val value: Any)
 

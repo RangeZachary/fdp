@@ -105,8 +105,8 @@ class AcquirerServiceImpl: AcquirerService {
      */
     @Scheduled(cron = "0 20 9 * * ?")
     private fun launch() {
-        if (isRunning) {
-            logger.warn("program is running, can not launch again.")
+        if (isRunning || isStopping) {
+            logger.warn("program is running or stopping, can not launch again.")
             return
         }
 

@@ -64,7 +64,8 @@ object FileUtils {
         if (!zipFile.exists()) {
             zipFile.createNewFile()
         } else {
-            zipFile = File(filename + "-${LocalTime.now()}")
+            zipFile = File(filename.substringBeforeLast(".")
+                    + "-${LocalTime.now()}.zip")
             zipFile.createNewFile()
         }
         ZipOutputStream(FileOutputStream(zipFile)).use { zos ->

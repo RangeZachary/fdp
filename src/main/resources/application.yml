@@ -11,8 +11,8 @@ logging:
 fdp:
   mode: mds
   kafka-url: fdp:9092
-  filepath: /Users/zhurenjie/Downloads
-  buffer-size: 131072
+  filepath: /Users/zhurenjie/Downloads/mds
+  buffer-size: 65536
   send-retry-times: 10
   send-retry-interval-ms: 100
   save-local: true
